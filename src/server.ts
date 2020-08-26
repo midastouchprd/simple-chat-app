@@ -8,7 +8,7 @@ export class Server {
   private app: Application;
   private io: SocketIOServer;
 
-  private activeSockets: string[] = [];
+  private activeSockets: {id: string, name: string}[] = [];
 
   private readonly DEFAULT_PORT = 5000;
 
@@ -39,22 +39,35 @@ export class Server {
   private handleSocketConnection(): void {
     this.io.on("connection", socket => {
       const existingSocket = this.activeSockets.find(
-        existingSocket => existingSocket === socket.id
+        existingSocket => existingSocket.id === socket.id
       );
 
       if (!existingSocket) {
-        this.activeSockets.push(socket.id);
+        this.activeSockets.push({id: socket.id, name: `user-${socket.id}`});
 
         socket.emit("update-user-list", {
           users: this.activeSockets.filter(
-            existingSocket => existingSocket !== socket.id
+            existingSocket => existingSocket.id !== socket.id
           )
         });
 
         socket.broadcast.emit("update-user-list", {
-          users: [socket.id]
+          users: [{id: socket.id, name: `user-${socket.id}`}]
         });
       }
+
+      socket.on("add-name", (data: any) => {
+        console.log(this.activeSockets);
+        let myActiveSocketIndex = this.activeSockets.map(s => s.id).indexOf(socket.id)
+
+        this.activeSockets[myActiveSocketIndex].name = data
+
+        socket.emit("update-user-list", {
+                    users: this.activeSockets.filter(
+            existingSocket => existingSocket.id !== socket.id
+          )
+        });
+      })
 
       socket.on("call-user", (data: any) => {
         socket.to(data.to).emit("call-made", {
@@ -78,7 +91,7 @@ export class Server {
 
       socket.on("disconnect", () => {
         this.activeSockets = this.activeSockets.filter(
-          existingSocket => existingSocket !== socket.id
+          existingSocket => existingSocket.id !== socket.id
         );
         socket.broadcast.emit("remove-user", {
           socketId: socket.id

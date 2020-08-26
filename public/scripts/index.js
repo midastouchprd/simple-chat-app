@@ -17,15 +17,15 @@ function unselectUsersFromList() {
   });
 }
 
-function createUserItemContainer(socketId) {
+function createUserItemContainer(user) {
   const userContainerEl = document.createElement("div");
 
   const usernameEl = document.createElement("p");
 
   userContainerEl.setAttribute("class", "active-user");
-  userContainerEl.setAttribute("id", socketId);
+  userContainerEl.setAttribute("id", user.id);
   usernameEl.setAttribute("class", "username");
-  usernameEl.innerHTML = `Socket: ${socketId}`;
+  usernameEl.innerHTML = `User: ${user.name}`;
 
   userContainerEl.appendChild(usernameEl);
 
@@ -33,8 +33,8 @@ function createUserItemContainer(socketId) {
     unselectUsersFromList();
     userContainerEl.setAttribute("class", "active-user active-user--selected");
     const talkingWithInfo = document.getElementById("talking-with-info");
-    talkingWithInfo.innerHTML = `Talking with: "Socket: ${socketId}"`;
-    callUser(socketId);
+    talkingWithInfo.innerHTML = `Talking with: "Socket: ${user.name}"`;
+    callUser(user);
   });
 
   return userContainerEl;
@@ -50,15 +50,17 @@ async function callUser(socketId) {
   });
 }
 
-function updateUserList(socketIds) {
+function updateUserList(users) {
   const activeUserContainer = document.getElementById("active-user-container");
 
-  socketIds.forEach(socketId => {
-    const alreadyExistingUser = document.getElementById(socketId);
+  users.forEach(user => {
+    const alreadyExistingUser = document.getElementById(user.id);
     if (!alreadyExistingUser) {
-      const userContainerEl = createUserItemContainer(socketId);
+      const userContainerEl = createUserItemContainer(user);
 
       activeUserContainer.appendChild(userContainerEl);
+    } else {
+      alreadyExistingUser.innerHTML = `<p class="username">User: ${user.name}</p>`
     }
   });
 }
@@ -142,3 +144,13 @@ navigator.getUserMedia(
     console.warn(error.message);
   }
 );
+
+let userName = document.getElementById("local-user-name")
+let setNameButton = document.getElementById("set-name-button");
+setNameButton.addEventListener('click', e => {
+  let name = userName.value
+
+  console.log(name);
+
+  socket.emit('add-name', name)
+})

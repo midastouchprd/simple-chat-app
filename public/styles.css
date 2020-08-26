@@ -8,6 +8,38 @@ body {
   color: #595354;
 }
 
+input {
+  margin-left: 24px;
+  border: none;
+  padding: 16px;
+  outline: none;
+  font-size: 18px;
+  height: 24px;
+  width: 30%;
+}
+
+button {
+  border: none;
+  outline: none;
+  padding: 16px;
+  font-size: 18px;
+  width: 15%;
+  background-color: rgb(83, 144, 47);
+  cursor: pointer;
+  transition: .2s
+}
+
+button:hover {
+  transition: .2s;
+  background-color: rgb(97, 211, 68)
+}
+
+button:active {
+  transition: .2s;
+  border: 2px black solid;
+  background-color: rgb(97, 211, 68)
+}
+
 .header {
   background-color: #ffffff;
   padding: 10px 40px;
