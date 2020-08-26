@@ -34,7 +34,7 @@ function createUserItemContainer(user) {
     userContainerEl.setAttribute("class", "active-user active-user--selected");
     const talkingWithInfo = document.getElementById("talking-with-info");
     talkingWithInfo.innerHTML = `Talking with: "Socket: ${user.name}"`;
-    callUser(user);
+    callUser(user.id);
   });
 
   return userContainerEl;
