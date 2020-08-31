@@ -3,7 +3,7 @@ import socketIO, { Server as SocketIOServer } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
 import path from "path";
 
-console.log("PORT: ", process.env.PORT);
+const port = process.env.PORT;
 
 export class Server {
   private httpServer: HTTPServer;
@@ -14,11 +14,10 @@ export class Server {
 
   constructor() {
     this.initialize();
-    console.log(process.env);
   }
 
   private initialize(): void {
-    this.PORT = parseInt(process.env.PORT) | 5000;
+    this.PORT = port | 5000;
     this.app = express();
     this.httpServer = createServer(this.app);
     this.io = socketIO(this.httpServer);
