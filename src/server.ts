@@ -7,10 +7,8 @@ export class Server {
   private httpServer: HTTPServer;
   private app: Application;
   private io: SocketIOServer;
-
-  private activeSockets: {id: string, name: string}[] = [];
-
-  private readonly DEFAULT_PORT = 5000;
+  private PORT: number;
+  private activeSockets: { id: string; name: string }[] = [];
 
   constructor() {
     this.initialize();
@@ -20,6 +18,7 @@ export class Server {
     this.app = express();
     this.httpServer = createServer(this.app);
     this.io = socketIO(this.httpServer);
+    this.PORT = parseInt(process.env.PORT) | 5000;
 
     this.configureApp();
     this.configureRoutes();
@@ -37,72 +36,74 @@ export class Server {
   }
 
   private handleSocketConnection(): void {
-    this.io.on("connection", socket => {
+    this.io.on("connection", (socket) => {
       const existingSocket = this.activeSockets.find(
-        existingSocket => existingSocket.id === socket.id
+        (existingSocket) => existingSocket.id === socket.id
       );
 
       if (!existingSocket) {
-        this.activeSockets.push({id: socket.id, name: `user-${socket.id}`});
+        this.activeSockets.push({ id: socket.id, name: `user-${socket.id}` });
 
         socket.emit("update-user-list", {
           users: this.activeSockets.filter(
-            existingSocket => existingSocket.id !== socket.id
-          )
+            (existingSocket) => existingSocket.id !== socket.id
+          ),
         });
 
         socket.broadcast.emit("update-user-list", {
-          users: [{id: socket.id, name: `user-${socket.id}`}]
+          users: [{ id: socket.id, name: `user-${socket.id}` }],
         });
       }
 
       socket.on("add-name", (data: any) => {
         console.log(this.activeSockets);
-        let myActiveSocketIndex = this.activeSockets.map(s => s.id).indexOf(socket.id)
+        let myActiveSocketIndex = this.activeSockets
+          .map((s) => s.id)
+          .indexOf(socket.id);
 
-        this.activeSockets[myActiveSocketIndex].name = data
+        this.activeSockets[myActiveSocketIndex].name = data;
 
         socket.emit("update-user-list", {
-                    users: this.activeSockets.filter(
-            existingSocket => existingSocket.id !== socket.id
-          )
+          users: this.activeSockets.filter(
+            (existingSocket) => existingSocket.id !== socket.id
+          ),
         });
-      })
+      });
 
       socket.on("call-user", (data: any) => {
         socket.to(data.to).emit("call-made", {
           offer: data.offer,
-          socket: socket.id
+          socket: socket.id,
         });
       });
 
-      socket.on("make-answer", data => {
+      socket.on("make-answer", (data) => {
         socket.to(data.to).emit("answer-made", {
           socket: socket.id,
-          answer: data.answer
+          answer: data.answer,
         });
       });
 
-      socket.on("reject-call", data => {
+      socket.on("reject-call", (data) => {
         socket.to(data.from).emit("call-rejected", {
-          socket: socket.id
+          socket: socket.id,
         });
       });
 
       socket.on("disconnect", () => {
         this.activeSockets = this.activeSockets.filter(
-          existingSocket => existingSocket.id !== socket.id
+          (existingSocket) => existingSocket.id !== socket.id
         );
         socket.broadcast.emit("remove-user", {
-          socketId: socket.id
+          socketId: socket.id,
         });
       });
     });
   }
 
   public listen(callback: (port: number) => void): void {
-    this.httpServer.listen(this.DEFAULT_PORT, () => {
-      callback(this.DEFAULT_PORT);
+    this.httpServer.listen(this.PORT, () => {
+      callback(this.PORT);
     });
   }
 }
