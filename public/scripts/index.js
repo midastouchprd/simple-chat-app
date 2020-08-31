@@ -66,7 +66,7 @@ function updateUserList(users) {
   });
 }
 
-const socket = io.connect("localhost:5000");
+const socket = io.connect(location.host);
 
 socket.on("update-user-list", ({ users }) => {
   console.log("Client has heard update-user-list, with: ", users);
