@@ -3,6 +3,8 @@ import socketIO, { Server as SocketIOServer } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
 import path from "path";
 
+console.log("PORT: ", process.env.PORT);
+
 export class Server {
   private httpServer: HTTPServer;
   private app: Application;
@@ -12,13 +14,14 @@ export class Server {
 
   constructor() {
     this.initialize();
+    console.log(process.env);
   }
 
   private initialize(): void {
+    this.PORT = parseInt(process.env.PORT) | 5000;
     this.app = express();
     this.httpServer = createServer(this.app);
     this.io = socketIO(this.httpServer);
-    this.PORT = parseInt(process.env.PORT) | 5000;
 
     this.configureApp();
     this.configureRoutes();
@@ -67,7 +70,7 @@ export class Server {
       socket.on("add-name", (data: any) => {
         console.log("server heard add-name from: ", socket.id);
         console.log(this.activeSockets);
-        let myActiveSocketIndex = this.activeSockets
+        const myActiveSocketIndex = this.activeSockets
           .map((s) => s.id)
           .indexOf(socket.id);
 
