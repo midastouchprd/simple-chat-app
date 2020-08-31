@@ -12,7 +12,7 @@ function unselectUsersFromList() {
     ".active-user.active-user--selected"
   );
 
-  alreadySelectedUser.forEach(el => {
+  alreadySelectedUser.forEach((el) => {
     el.setAttribute("class", "active-user");
   });
 }
@@ -46,21 +46,21 @@ async function callUser(socketId) {
 
   socket.emit("call-user", {
     offer,
-    to: socketId
+    to: socketId,
   });
 }
 
 function updateUserList(users) {
   const activeUserContainer = document.getElementById("active-user-container");
 
-  users.forEach(user => {
+  users.forEach((user) => {
     const alreadyExistingUser = document.getElementById(user.id);
     if (!alreadyExistingUser) {
       const userContainerEl = createUserItemContainer(user);
 
       activeUserContainer.appendChild(userContainerEl);
     } else {
-      alreadyExistingUser.innerHTML = `<p class="username">User: ${user.name}</p>`
+      alreadyExistingUser.innerHTML = `<p class="username">User: ${user.name}</p>`;
     }
   });
 }
@@ -68,10 +68,12 @@ function updateUserList(users) {
 const socket = io.connect("localhost:5000");
 
 socket.on("update-user-list", ({ users }) => {
+  console.log("Client has heard update-user-list, with: ", users);
   updateUserList(users);
 });
 
 socket.on("remove-user", ({ socketId }) => {
+  console.log("Client has heard remove-user, with: ", socketId);
   const elToRemove = document.getElementById(socketId);
 
   if (elToRemove) {
@@ -79,15 +81,19 @@ socket.on("remove-user", ({ socketId }) => {
   }
 });
 
-socket.on("call-made", async data => {
+socket.on("call-made", async (data) => {
+  console.log("Client has heard call-made, with: ", data);
   if (getCalled) {
     const confirmed = confirm(
       `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
     );
 
     if (!confirmed) {
+      console.log("Client has emitted reject-call, with: ", {
+        from: data.socket,
+      });
       socket.emit("reject-call", {
-        from: data.socket
+        from: data.socket,
       });
 
       return;
@@ -102,12 +108,12 @@ socket.on("call-made", async data => {
 
   socket.emit("make-answer", {
     answer,
-    to: data.socket
+    to: data.socket,
   });
   getCalled = true;
 });
 
-socket.on("answer-made", async data => {
+socket.on("answer-made", async (data) => {
   await peerConnection.setRemoteDescription(
     new RTCSessionDescription(data.answer)
   );
@@ -118,12 +124,12 @@ socket.on("answer-made", async data => {
   }
 });
 
-socket.on("call-rejected", data => {
+socket.on("call-rejected", (data) => {
   alert(`User: "Socket: ${data.socket}" rejected your call.`);
   unselectUsersFromList();
 });
 
-peerConnection.ontrack = function({ streams: [stream] }) {
+peerConnection.ontrack = function ({ streams: [stream] }) {
   const remoteVideo = document.getElementById("remote-video");
   if (remoteVideo) {
     remoteVideo.srcObject = stream;
@@ -132,25 +138,27 @@ peerConnection.ontrack = function({ streams: [stream] }) {
 
 navigator.getUserMedia(
   { video: true, audio: true },
-  stream => {
+  (stream) => {
     const localVideo = document.getElementById("local-video");
     if (localVideo) {
       localVideo.srcObject = stream;
     }
 
-    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+    stream
+      .getTracks()
+      .forEach((track) => peerConnection.addTrack(track, stream));
   },
-  error => {
+  (error) => {
     console.warn(error.message);
   }
 );
 
-let userName = document.getElementById("local-user-name")
+let userName = document.getElementById("local-user-name");
 let setNameButton = document.getElementById("set-name-button");
-setNameButton.addEventListener('click', e => {
-  let name = userName.value
+setNameButton.addEventListener("click", (e) => {
+  let name = userName.value;
 
   console.log(name);
 
-  socket.emit('add-name', name)
-})
+  socket.emit("add-name", name);
+});

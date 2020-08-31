@@ -1,9 +1,7 @@
 import { Server } from "./server";
-import { hostname, homedir, userInfo } from "os";
 
 const server = new Server();
-
-console.log(hostname(), homedir(), userInfo());
+console.log(server);
 
 server.listen((port) => {
   console.log(`Server is listening on: ${port}`);
