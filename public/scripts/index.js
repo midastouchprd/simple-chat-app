@@ -1,8 +1,6 @@
 let isAlreadyCalling = false;
 let getCalled = false;
 
-const existingCalls = [];
-
 const { RTCPeerConnection, RTCSessionDescription } = window;
 
 const peerConnection = new RTCPeerConnection();
@@ -18,6 +16,7 @@ function unselectUsersFromList() {
 }
 
 function createUserItemContainer(user) {
+  console.log(user, "createITEM CONTAINER");
   const userContainerEl = document.createElement("div");
 
   const usernameEl = document.createElement("p");
@@ -30,23 +29,24 @@ function createUserItemContainer(user) {
   userContainerEl.appendChild(usernameEl);
 
   userContainerEl.addEventListener("click", () => {
+    console.log("clicked on: ", user);
     unselectUsersFromList();
     userContainerEl.setAttribute("class", "active-user active-user--selected");
-    const talkingWithInfo = document.getElementById("talking-with-info");
-    talkingWithInfo.innerHTML = `Talking with: "Socket: ${user.name}"`;
-    callUser(user.id);
+    callUser(user);
   });
 
   return userContainerEl;
 }
 
-async function callUser(socketId) {
+async function callUser(user) {
+  const talkingWithInfo = document.getElementById("talking-with-info");
+  talkingWithInfo.innerHTML = `Talking with: "${user.name}"`;
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
 
   socket.emit("call-user", {
     offer,
-    to: socketId,
+    to: user.id,
   });
 }
 
@@ -54,6 +54,7 @@ function updateUserList(users) {
   const activeUserContainer = document.getElementById("active-user-container");
 
   users.forEach((user) => {
+    console.log(user.name, "from updateUserLIST");
     const alreadyExistingUser = document.getElementById(user.id);
     if (!alreadyExistingUser) {
       const userContainerEl = createUserItemContainer(user);
@@ -106,6 +107,11 @@ socket.on("call-made", async (data) => {
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
 
+  console.log("Client has emitted make-answer, with: ", {
+    answer,
+    to: data.socket,
+  });
+
   socket.emit("make-answer", {
     answer,
     to: data.socket,
@@ -114,6 +120,7 @@ socket.on("call-made", async (data) => {
 });
 
 socket.on("answer-made", async (data) => {
+  console.log("Client has heard answer-made: ", data);
   await peerConnection.setRemoteDescription(
     new RTCSessionDescription(data.answer)
   );
@@ -125,7 +132,8 @@ socket.on("answer-made", async (data) => {
 });
 
 socket.on("call-rejected", (data) => {
-  alert(`User: "Socket: ${data.socket}" rejected your call.`);
+  console.log("Client has heard call-rejected: ", data);
+  alert(`User: "Socket: ${data.socket.name}" rejected your call.`);
   unselectUsersFromList();
 });
 
@@ -160,5 +168,6 @@ setNameButton.addEventListener("click", (e) => {
 
   console.log(name);
 
+  console.log("Client has emitted add-name, with: ", name);
   socket.emit("add-name", name);
 });

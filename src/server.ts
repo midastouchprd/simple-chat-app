@@ -44,9 +44,23 @@ export class Server {
       );
 
       if (!existingSocket) {
-        this.activeSockets.push({ id: socket.id, name: `user-${socket.id}` });
+        this.activeSockets.push({
+          id: socket.id,
+          name: `user-${socket.id}`,
+        });
 
-        console.log("server emitting update-user-list from: ", socket.id);
+        console.log(
+          "server emitting update-user-list from: ",
+          socket.id,
+          "with: ",
+          {
+            users: this.activeSockets.filter(
+              (existingSocket) => existingSocket.id !== socket.id
+            ),
+          }
+        );
+
+        //updates my list
 
         socket.emit("update-user-list", {
           users: this.activeSockets.filter(
@@ -56,8 +70,14 @@ export class Server {
 
         console.log(
           "server broadcast emitting update-user-list from: ",
-          socket.id
+          socket.id,
+          "with: ",
+          {
+            users: [{ id: socket.id, name: `user-${socket.id}` }],
+          }
         );
+
+        //updates other list
 
         socket.broadcast.emit("update-user-list", {
           users: [{ id: socket.id, name: `user-${socket.id}` }],
@@ -65,7 +85,7 @@ export class Server {
       }
 
       socket.on("add-name", (data: any) => {
-        console.log("server heard add-name from: ", socket.id);
+        console.log("server heard add-name from: ", socket.id, "with: ", data);
         console.log(this.activeSockets);
         const myActiveSocketIndex = this.activeSockets
           .map((s) => s.id)
@@ -74,21 +94,53 @@ export class Server {
         this.activeSockets[myActiveSocketIndex].name = data;
 
         console.log(
-          "server broadcast emitting update-user-list from: ",
-          socket.id
+          "server emitting update-user-list from: ",
+          socket.id,
+          "with: ",
+          {
+            users: this.activeSockets.filter(
+              (existingSocket) => existingSocket.id !== socket.id
+            ),
+          }
         );
+
+        //updates my list
 
         socket.emit("update-user-list", {
           users: this.activeSockets.filter(
             (existingSocket) => existingSocket.id !== socket.id
           ),
         });
+
+        console.log(
+          "server broadcast emitting update-user-list from: ",
+          socket.id,
+          "with: ",
+          {
+            users: this.activeSockets.filter(
+              (existingSocket) => existingSocket.id === socket.id
+            ),
+          }
+        );
+
+        //updates other list
+
+        socket.broadcast.emit("update-user-list", {
+          users: this.activeSockets.filter(
+            (existingSocket) => existingSocket.id === socket.id
+          ),
+        });
       });
 
       socket.on("call-user", (data: any) => {
-        console.log("server heard call-user from: ", socket.id);
+        console.log("server heard call-user from: ", socket.id, "with: ", data);
 
-        console.log("server broadcast emitting call-made from: ", socket.id);
+        console.log(
+          "server broadcast emitting call-made from: ",
+          socket.id,
+          "with: ",
+          data
+        );
         socket.to(data.to).emit("call-made", {
           offer: data.offer,
           socket: socket.id,
@@ -96,8 +148,18 @@ export class Server {
       });
 
       socket.on("make-answer", (data) => {
-        console.log("server heard make-answser from: ", socket.id);
-        console.log("server broadcast emitting answer-made from: ", socket.id);
+        console.log(
+          "server heard make-answser from: ",
+          socket.id,
+          "with: ",
+          data
+        );
+        console.log(
+          "server broadcast emitting answer-made from: ",
+          socket.id,
+          "with: ",
+          data
+        );
         socket.to(data.to).emit("answer-made", {
           socket: socket.id,
           answer: data.answer,
@@ -105,10 +167,17 @@ export class Server {
       });
 
       socket.on("reject-call", (data) => {
-        console.log("server heard rejected-call from: ", socket.id);
+        console.log(
+          "server heard rejected-call from: ",
+          socket.id,
+          "with: ",
+          data
+        );
         console.log(
           "server broadcast emitting call rejected from: ",
-          socket.id
+          socket.id,
+          "with: ",
+          data
         );
         socket.to(data.from).emit("call-rejected", {
           socket: socket.id,
@@ -116,7 +185,7 @@ export class Server {
       });
 
       socket.on("disconnect", () => {
-        console.log("server heard add-name from: ", socket.id);
+        console.log("server heard disconnect from: ", socket.id, "with: ");
         this.activeSockets = this.activeSockets.filter(
           (existingSocket) => existingSocket.id !== socket.id
         );
