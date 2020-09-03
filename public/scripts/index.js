@@ -66,7 +66,7 @@ function updateUserList(users) {
   });
 }
 
-const socket = io.connect(location.host);
+const socket = io.connect("wss://wse54aus.gigcasters.com/webrtc-session.json");
 
 socket.on("update-user-list", ({ users }) => {
   console.log("Client has heard update-user-list, with: ", users);
