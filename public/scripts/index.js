@@ -172,9 +172,6 @@ function wsConnect() {
         p.addEventListener("click", () => {
           startPlay(stream);
         });
-        if (stream.readyVideo && stream.readyAudio) {
-          p.style.backgroundColor = "green";
-        }
         panel.appendChild(p);
       });
     }
