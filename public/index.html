@@ -16,23 +16,22 @@
     <div class="container">
       <header class="header">
         <div class="logo-container">
-          <img src="./img/doge.png" alt="doge logo" class="logo-img" />
           <h1 class="logo-text">
             Virtual<span class="logo-highlight">Junkett</span>
           </h1>
-          <input id="local-user-name" placeholder="Your Name"/>
+          <input id="local-user-name" placeholder="Your Name" />
           <button id="set-name-button">Set Name</button>
         </div>
       </header>
       <div class="content-container">
         <div class="active-users-panel" id="active-user-container">
-          <h3 class="panel-title">Active Users:</h3>
+          <h3 class="panel-title">Available Streams</h3>
         </div>
         <div class="video-chat-container">
           <h2 class="talk-info" id="talking-with-info">
             Select active user on the left menu.
           </h2>
-          <div class="video-container">
+          <div id="video-container" class="video-container loading">
             <video autoplay class="remote-video" id="remote-video"></video>
             <video autoplay muted class="local-video" id="local-video"></video>
           </div>
